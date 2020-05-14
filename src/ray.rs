@@ -26,3 +26,10 @@ impl Ray {
         return self.origin + t * self.direction;
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct Hit {
+    pub p: Vec3,
+    pub normal: Vec3,
+    pub t: f32,
+}
