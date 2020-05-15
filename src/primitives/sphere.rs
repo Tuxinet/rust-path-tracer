@@ -1,16 +1,20 @@
 use glam::{Vec3};
 use crate::ray::{Ray, Hit};
 use crate::primitives::Intersect;
+use crate::material::*;
+use std::sync::Arc;
+use std::boxed::Box;
 
-#[derive(Clone, Copy, Debug)]
+//#[derive(Clone, Copy, Debug)]
 pub struct Sphere {
     center: Vec3,
     radius: f32,
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Self {
-        Self { center, radius }
+    pub fn new(center: Vec3, radius: f32, material: Arc<dyn Material>) -> Self {
+        Self { center, radius, material }
     }
 }
 
@@ -29,7 +33,8 @@ impl Intersect for Sphere {
                 let hit = Hit {
                     t: temp,
                     p: ray.at(temp),
-                    normal: (ray.at(temp) - self.center) / self.radius
+                    normal: (ray.at(temp) - self.center) / self.radius,
+                    material: self.material.clone(),
                 };
                 return Some(hit);
             }
@@ -40,6 +45,7 @@ impl Intersect for Sphere {
                     t: temp,
                     p: ray.at(temp),
                     normal: (ray.at(temp) - self.center) / self.radius,
+                    material: self.material.clone(),
                 });
             }
         }

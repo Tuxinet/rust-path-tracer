@@ -1,4 +1,7 @@
 use glam::{vec3, Vec3};
+use crate::material::Material;
+use std::boxed::Box;
+use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Ray {
@@ -27,9 +30,10 @@ impl Ray {
     }
 }
 
-#[derive(Clone, Debug)]
+//#[derive(Clone, Debug)]
 pub struct Hit {
     pub p: Vec3,
     pub normal: Vec3,
     pub t: f32,
+    pub material: Arc<dyn Material>,
 }

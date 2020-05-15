@@ -20,20 +20,17 @@ impl World {
 
 impl Intersect for World {
     fn intersection(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
-        let mut hit: Hit = Hit {
-            p: Vec3::new(0.0, 0.0, 0.0),
-            normal: Vec3::new(0.0, 0.0, 0.0),
-            t: 0.0
-        };
+
+        let mut ret = None;
 
         let mut closest: f32 = t_max;
         let mut got_hit: bool = false;
         for s in self.objects.iter() {
             match s.intersection(ray, t_min, closest) {
-                Some(hitR) => {
+                Some(hit_r) => {
                     got_hit = true;
-                    closest = hitR.t;
-                    hit = hitR;
+                    closest = hit_r.t;
+                    ret = Some(hit_r);
                 },
                 None => {
 
@@ -41,7 +38,7 @@ impl Intersect for World {
             }
         }
         if got_hit {
-            return Some(hit);
+            return ret;
         }
         None
     }
