@@ -1,6 +1,7 @@
 use glam::Vec3;
 use crate::ray::Ray;
 
+#[derive(Clone, Debug)]
 pub struct Camera {
     lower_left_corner: Vec3,
     horizontal: Vec3,

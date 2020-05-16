@@ -1,7 +1,7 @@
 use crate::primitives::*;
 use crate::ray::*;
-use glam::Vec3;
 
+#[derive(Clone, Debug)]
 pub struct World {
     objects: Vec<Sphere>,
 }
@@ -13,7 +13,6 @@ impl World {
     }
 
     pub fn add_obj(&mut self, s: Sphere) {
-        //let s = Sphere::new(center, radius);
         self.objects.push(s);
     }
 }

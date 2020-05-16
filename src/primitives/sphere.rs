@@ -3,9 +3,8 @@ use crate::ray::{Ray, Hit};
 use crate::primitives::Intersect;
 use crate::material::*;
 use std::sync::Arc;
-use std::boxed::Box;
 
-//#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Sphere {
     center: Vec3,
     radius: f32,
@@ -29,7 +28,7 @@ impl Intersect for Sphere {
         if discriminant > 0.0 {
             let root = discriminant.sqrt();
             let mut temp = (-b - root) / a;
-            if (temp < t_max && temp > t_min) {
+            if temp < t_max && temp > t_min {
                 let hit = Hit {
                     t: temp,
                     p: ray.at(temp),
@@ -40,7 +39,7 @@ impl Intersect for Sphere {
             }
 
             temp = (-b + root) / a;
-            if (temp < t_max && temp > t_min) {
+            if temp < t_max && temp > t_min {
                 return Some( Hit {
                     t: temp,
                     p: ray.at(temp),

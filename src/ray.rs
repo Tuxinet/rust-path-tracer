@@ -1,6 +1,5 @@
 use glam::{vec3, Vec3};
 use crate::material::Material;
-use std::boxed::Box;
 use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug, Default)]

@@ -27,7 +27,7 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, ray: &Ray, hit: &Hit, rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+    fn scatter(&self, _ray: &Ray, hit: &Hit, rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
         let scatter_direction: Vec3 = hit.normal + VecUtil::random_in_unit_sphere(rng);
         
         return Some(ScatterRecord {
@@ -50,7 +50,7 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(&self, ray: &Ray, hit: &Hit, rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
         let reflected = reflect(ray.direction.normalize(), hit.normal);
         
         Some(ScatterRecord {

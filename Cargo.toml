@@ -6,7 +6,16 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.dev]
+lto = true
+opt-level=3
+
+[profile.release]
+lto = true
+opt-level=3
+
 [dependencies]
 glam = "0.8.7"
 image = "0.23.4"
 rand = "0.7.3"
+scoped_threadpool = "0.1.9"

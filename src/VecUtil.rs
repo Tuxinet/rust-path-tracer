@@ -11,13 +11,12 @@ impl VecUtil {
     }
 
     pub fn random_in_unit_sphere(rng: &mut rand::prelude::ThreadRng) -> Vec3 {
-        while true {
+        loop {
             let v = VecUtil::random(-1.0, 1.0, rng);
-            if (v.length_squared() <= 1.0)
+            if v.length_squared() <= 1.0
             {
                 return v;
             }
         }
-        return Vec3::new(0.0, 0.0, 0.0);
     }
 }
