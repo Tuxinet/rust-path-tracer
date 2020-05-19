@@ -29,35 +29,66 @@ fn main() {
     let mut w: World = World::new();
     let mut rng = rand::thread_rng();
 
-    w.add_obj(Sphere::new(Vec3::new(0.0, -2.0, -2.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.7, 0.7)))));
-    w.add_obj(Sphere::new(Vec3::new(0.0, 2.0, -2.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.7, 0.7)))));
-    w.add_obj(Sphere::new(Vec3::new(-2.0, 0.0, -2.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.7, 0.7)))));
-    w.add_obj(Sphere::new(Vec3::new(2.0, 0.0, -2.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.7, 0.7)))));
-    w.add_obj(Sphere::new(Vec3::new(0.0, 0.0, -4.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.7, 0.7)))));
-    w.add_obj(Sphere::new(Vec3::new(0.0, 0.0, 4.0), 3.5, Arc::new(Metal::new(Vec3::new(0.7, 0.7, 0.7)))));
-    //w.add_obj(Sphere::new(Vec3::new(1.0, 0.0, -2.0), 0.5));
-    w.add_obj(Sphere::new(Vec3::new(0.0, -2.0, 0.0), 1.0, Arc::new(Lambertian::new(Vec3::new(1.0, 1.0, 0.5)))));
+    //w.add_obj(Arc::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
+    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))))));
+    w.add_obj(Arc::new(Sphere::new(Vec3::new(2.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Dielectric::new(1.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+    w.add_obj(Arc::new(Sphere::new(Vec3::new(-2.0, 1.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    
+    //w.add_obj(Arc::new(Sphere::new(Vec3::new(4.0, 1.0, -1.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 20.0, 0.0), 5.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
 
-    for _ in 0..0 { 
-        w.add_obj(Sphere::new((VecUtil::random_in_unit_sphere(&mut rng).normalize() * 1.52) + Vec3::new(0.0, 0.0, -2.0), 0.04, Arc::new(Metal::new(VecUtil::random_in_unit_sphere(&mut rng).normalize()))));
+    for a in -0..0 { 
+        for b in -0..0 {
+            let choose_mat = rng.gen_range(0.0, 1.0);
+            let center = Vec3::new(a as f32 + 0.9 * rng.gen_range(0.0, 1.0), 0.2, b as f32 + 0.9 * rng.gen_range(0.0, 1.0));
+
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    //diffuse
+                    let albedo = VecUtil::random(0.0, 1.0, &mut rng) * VecUtil::random(0.0, 1.0, &mut rng);
+                    let mat = Arc::new(Lambertian::new(albedo));
+                    w.add_obj(Arc::new(Sphere::new(center, 0.2, mat)));
+                } else if choose_mat < 0.95 {
+
+                    //metal
+                    let albedo = VecUtil::random(0.5, 1.0, &mut rng) * VecUtil::random(0.5, 1.0, &mut rng);
+                    let fuzz = rng.gen_range(0.0, 0.5);
+                    let mat = Arc::new(Metal::new(albedo, fuzz));
+                    w.add_obj(Arc::new(Sphere::new(center, 0.2, mat)));
+                } else {
+                    //light
+                    let mat = Arc::new(Dielectric::new(1.5));
+                    //let mat = Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0)));
+                    w.add_obj(Arc::new(Sphere::new(center, 0.2, mat)));
+                }
+            }
+        }
+        //let p = VecUtil::random_in_unit_sphere(&mut rng).normalize() * 1.52 + Vec3::new(0.0, 0.0, -2.0);
+        //w.add_obj(Arc::new(Sphere::new(p, 0.1, Arc::new(Dielectric::new(1.5)))));
+        //w.add_obj(Arc::new(Sphere::new(p, -0.095, Arc::new(Dielectric::new(1.5)))));
     }
 
     let aspect_ratio: f32 = 16.0 / 9.0;
-    let image_width: u32 = 16000;
+    let image_width: u32 = 4000;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let bounds: (usize, usize) = (image_width as usize, image_height as usize);
     let mut img = vec![Vec3::new(0.0, 0.0, 0.0); bounds.0 * bounds.1];
-    let samples_per_pixel: u32 = 100;
+    let samples_per_pixel: u32 = 800;
 
 
     println!("Starting path tracing with dimensions:\n\tWidth: {}\n\tHeight: {}", image_width, image_height);
 
     let mut pool = Pool::new( 16 );
 
-    let num_rows_per_task: u32 = 60;
+    let num_rows_per_task: u32 = 30;
 
-    let c: Camera = Camera::new();
+    let o = Vec3::new(0.0, 0.0, 25.0);
+    let at = Vec3::new(0.0, 0.25, 0.0);
+    let c: Camera = Camera::new(o, at, Vec3::new(0.0, 1.0, 0.0), 10.0, image_width as f32 / image_height as f32, 0.0, (o-at).length());
 
     let start = Instant::now();
     pool.scoped(|scoped| {
@@ -69,9 +100,10 @@ fn main() {
             let w = w.clone();
             let tx = tx.clone();
 
+            
             scoped.execute(move || {
                 let mut rng = rand::thread_rng();
-                let start = j;
+                let mut start = j;
                 let mut _end = 0;
                 if (start as i32 - num_rows_per_task as i32) > 0 {
                     _end = start - num_rows_per_task as u32;
@@ -80,6 +112,11 @@ fn main() {
                     _end = 0;
                 }
 
+                let mut diff = start - _end;
+                diff /= 2;
+
+                start = _end+diff;
+
                 for j in _end..start {
 
                     for i in 0..image_width {
@@ -87,9 +124,9 @@ fn main() {
                         for _ in 0..samples_per_pixel {
                             let u: f32 = (i as f32 + rng.gen_range(0.0, 1.0)) / (image_width as f32 - 1.0);
                             let v: f32 = (j as f32 + rng.gen_range(0.0, 1.0)) / (image_height as f32 - 1.0);
-                            let r: Ray = c.get_ray(u, v);
+                            let r: Ray = c.get_ray(u, v, &mut rng);
                 
-                            let c: Vec3 = ray_color(&r, &w, 100, &mut rng);
+                            let c: Vec3 = ray_color(&r, Vec3::new(0.0, 0.0, 0.0), &w, 100, &mut rng);
             
                             ac += c;
                         }
@@ -113,7 +150,7 @@ fn main() {
 
         let mut last_update = Instant::now();
 
-        for _ in 0..((image_width * image_height) as usize) {
+        for _ in 0..(((image_width * image_height) / 2) as usize) {
             let p = rx.recv().unwrap();
             img[(p.x + p.y * image_width) as usize] = p.c;
             if last_update.elapsed().as_secs() > 30 {
@@ -130,7 +167,7 @@ fn main() {
     
 }
 
-fn ray_color(r: &Ray, w: &World, depth: u32, rng: &mut rand::prelude::ThreadRng) -> Vec3 {
+fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::prelude::ThreadRng) -> Vec3 {
     if depth <= 0 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
@@ -140,10 +177,12 @@ fn ray_color(r: &Ray, w: &World, depth: u32, rng: &mut rand::prelude::ThreadRng)
 
             match hit.material.scatter(r, &hit, rng) {
                 Some(record) => {
-                    return record.attenuation * ray_color(&record.scattered, w, depth-1, rng);
+                    return hit.material.emitted(0.0, 0.0, background) + record.attenuation * ray_color(&record.scattered, background, w, depth-1, rng);
                 }
 
-                None => {}
+                None => {
+                    return hit.material.emitted(0.0, 0.0, background);
+                }
             }
         }
         None => {
@@ -151,11 +190,9 @@ fn ray_color(r: &Ray, w: &World, depth: u32, rng: &mut rand::prelude::ThreadRng)
 
             let c = (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
             
-            return c;
+            return background;
         }
     }
-
-    return Vec3::new(0.0, 0.0, 0.0);
 }
 
 fn write_image(filename: &str, pixels: &[Vec3], bounds: (usize, usize))

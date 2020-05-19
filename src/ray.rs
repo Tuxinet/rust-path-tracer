@@ -10,6 +10,7 @@ pub struct Ray {
 }
 
 impl Ray {
+    #[inline(always)]
     pub fn new(origin: Vec3, direction: Vec3) -> Self {
         let inv_direction = vec3(
             1.0 / direction.x(),
@@ -24,15 +25,30 @@ impl Ray {
         }
     }
 
+    #[inline(always)]
     pub fn at(&self, t: f32) -> Vec3 {
         return self.origin + t * self.direction;
     }
 }
 
-//#[derive(Clone, Debug)]
+//#[derive(Default)]
 pub struct Hit {
     pub p: Vec3,
     pub normal: Vec3,
     pub t: f32,
     pub material: Arc<dyn Material>,
+    pub front_face: bool,
+}
+
+impl Hit {
+    #[inline(always)]
+    pub fn set_face_normal(&mut self, ray: &Ray) {
+        self.front_face = ray.direction.dot(self.normal) < 0.0;
+        if self.front_face {
+            self.normal = self.normal;
+        }
+        else {
+            self.normal = -self.normal;
+        }
+    }
 }

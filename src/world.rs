@@ -1,23 +1,25 @@
 use crate::primitives::*;
 use crate::ray::*;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct World {
-    objects: Vec<Sphere>,
+    objects: Vec<Arc<dyn Intersect>>,
 }
 
 impl World {
     pub fn new() -> Self {
-        let objects = Vec::<Sphere>::new();
+        let objects = Vec::<Arc<dyn Intersect>>::new();
         return Self {objects};
     }
 
-    pub fn add_obj(&mut self, s: Sphere) {
+    pub fn add_obj(&mut self, s: Arc<dyn Intersect>) {
         self.objects.push(s);
     }
 }
 
 impl Intersect for World {
+    #[inline(always)]
     fn intersection(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
 
         let mut ret = None;

@@ -18,6 +18,7 @@ impl Sphere {
 }
 
 impl Intersect for Sphere {
+    #[inline(always)]
     fn intersection(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
@@ -29,23 +30,28 @@ impl Intersect for Sphere {
             let root = discriminant.sqrt();
             let mut temp = (-b - root) / a;
             if temp < t_max && temp > t_min {
-                let hit = Hit {
+                let mut hit = Hit {
                     t: temp,
                     p: ray.at(temp),
                     normal: (ray.at(temp) - self.center) / self.radius,
                     material: self.material.clone(),
+                    front_face: true,
                 };
+                hit.set_face_normal(ray);
                 return Some(hit);
             }
 
             temp = (-b + root) / a;
             if temp < t_max && temp > t_min {
-                return Some( Hit {
+                let mut hit = Hit {
                     t: temp,
                     p: ray.at(temp),
                     normal: (ray.at(temp) - self.center) / self.radius,
                     material: self.material.clone(),
-                });
+                    front_face: false,
+                };
+                hit.set_face_normal(ray);
+                return Some(hit);
             }
         }
 
