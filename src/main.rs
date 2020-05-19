@@ -5,6 +5,7 @@ mod world;
 mod camera;
 mod vecutil;
 mod material;
+mod aabb;
 use crate::ray::Ray;
 use crate::primitives::*;
 use crate::world::World;
@@ -16,6 +17,9 @@ use crate::material::*;
 use scoped_threadpool::Pool;
 use std::sync::mpsc::*;
 use std::time::Instant;
+
+extern crate nalgebra as na;
+use na::{Vector3,RowVector3};
 
 use glam::Vec3;
 
@@ -31,30 +35,38 @@ fn main() {
 
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
-    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))))));
-    w.add_obj(Arc::new(Sphere::new(Vec3::new(2.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
-    w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Dielectric::new(1.5)))));
-    w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
-    w.add_obj(Arc::new(Sphere::new(Vec3::new(-2.0, 1.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(2.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Dielectric::new(1.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, 3.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(-2.0, 1.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
     
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(4.0, 1.0, -1.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 20.0, 0.0), 5.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
 
-    for a in -0..0 { 
-        for b in -0..0 {
-            let choose_mat = rng.gen_range(0.0, 1.0);
-            let center = Vec3::new(a as f32 + 0.9 * rng.gen_range(0.0, 1.0), 0.2, b as f32 + 0.9 * rng.gen_range(0.0, 1.0));
+    let min = 0;
+    let max = 0;
 
-            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+    for a in min..max { 
+        for b in min..max {
+            let choose_mat = rng.gen_range(0.0, 1.0);
+            let mut center = Vector3::new(a as f64 + 0.9 * rng.gen_range(0.0, 1.0), 0.2, b as f64 + 0.9 * rng.gen_range(0.0, 1.0));
+            center = VecUtil::random_in_unit_disk(&mut rng) * 5.0;
+
+            if (center - Vector3::new(4.0, 0.2, 0.0)).norm() as f64 > 0.9 {
                 if choose_mat < 0.8 {
                     //diffuse
-                    let albedo = VecUtil::random(0.0, 1.0, &mut rng) * VecUtil::random(0.0, 1.0, &mut rng);
+                    let a = VecUtil::random(0.5, 1.0, &mut rng);
+                    let albedo = Vec3::new(a.x as f32, a.y as f32, a.z as f32);
+                    
                     let mat = Arc::new(Lambertian::new(albedo));
                     w.add_obj(Arc::new(Sphere::new(center, 0.2, mat)));
                 } else if choose_mat < 0.95 {
 
                     //metal
-                    let albedo = VecUtil::random(0.5, 1.0, &mut rng) * VecUtil::random(0.5, 1.0, &mut rng);
+                    let a = VecUtil::random(0.5, 1.0, &mut rng);
+                    let albedo = Vec3::new(a.x as f32, a.y as f32, a.z as f32);
                     let fuzz = rng.gen_range(0.0, 0.5);
                     let mat = Arc::new(Metal::new(albedo, fuzz));
                     w.add_obj(Arc::new(Sphere::new(center, 0.2, mat)));
@@ -72,23 +84,23 @@ fn main() {
     }
 
     let aspect_ratio: f32 = 16.0 / 9.0;
-    let image_width: u32 = 4000;
+    let image_width: u32 = 10000;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let bounds: (usize, usize) = (image_width as usize, image_height as usize);
     let mut img = vec![Vec3::new(0.0, 0.0, 0.0); bounds.0 * bounds.1];
-    let samples_per_pixel: u32 = 800;
+    let samples_per_pixel: u32 = 80;
 
 
     println!("Starting path tracing with dimensions:\n\tWidth: {}\n\tHeight: {}", image_width, image_height);
 
     let mut pool = Pool::new( 16 );
 
-    let num_rows_per_task: u32 = 30;
+    let num_rows_per_task: u32 = 5;
 
-    let o = Vec3::new(0.0, 0.0, 25.0);
-    let at = Vec3::new(0.0, 0.25, 0.0);
-    let c: Camera = Camera::new(o, at, Vec3::new(0.0, 1.0, 0.0), 10.0, image_width as f32 / image_height as f32, 0.0, (o-at).length());
+    let o = Vector3::<f64>::new(-0.0, 0.0, 25.);
+    let at = Vector3::<f64>::new(0.0, 1.0, 0.0);
+    let c: Camera = Camera::new(o, at, Vector3::<f64>::new(0.0, 1.0, 0.0), 10.0, image_width as f64 / image_height as f64, 0.0, (o-at).norm());
 
     let start = Instant::now();
     pool.scoped(|scoped| {
@@ -112,18 +124,13 @@ fn main() {
                     _end = 0;
                 }
 
-                let mut diff = start - _end;
-                diff /= 2;
-
-                start = _end+diff;
-
                 for j in _end..start {
 
                     for i in 0..image_width {
                         let mut ac: Vec3 = Vec3::new(0.0, 0.0, 0.0);
                         for _ in 0..samples_per_pixel {
-                            let u: f32 = (i as f32 + rng.gen_range(0.0, 1.0)) / (image_width as f32 - 1.0);
-                            let v: f32 = (j as f32 + rng.gen_range(0.0, 1.0)) / (image_height as f32 - 1.0);
+                            let u: f64 = (i as f64 + rng.gen_range(0.0, 1.0)) / (image_width as f64 - 1.0);
+                            let v: f64 = (j as f64 + rng.gen_range(0.0, 1.0)) / (image_height as f64 - 1.0);
                             let r: Ray = c.get_ray(u, v, &mut rng);
                 
                             let c: Vec3 = ray_color(&r, Vec3::new(0.0, 0.0, 0.0), &w, 100, &mut rng);
@@ -150,7 +157,7 @@ fn main() {
 
         let mut last_update = Instant::now();
 
-        for _ in 0..(((image_width * image_height) / 2) as usize) {
+        for _ in 0..(((image_width * image_height)) as usize) {
             let p = rx.recv().unwrap();
             img[(p.x + p.y * image_width) as usize] = p.c;
             if last_update.elapsed().as_secs() > 30 {
@@ -172,12 +179,13 @@ fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::p
         return Vec3::new(0.0, 0.0, 0.0);
     }
 
-    match w.intersection(r, 0.0001, std::f32::MAX) {
+    match w.intersection(r, 0.0001, std::f64::MAX) {
         Some(hit) => {
 
             match hit.material.scatter(r, &hit, rng) {
                 Some(record) => {
-                    return hit.material.emitted(0.0, 0.0, background) + record.attenuation * ray_color(&record.scattered, background, w, depth-1, rng);
+                    let a: Vec3 = hit.material.emitted(0.0, 0.0, background) + (record.attenuation * (ray_color(&record.scattered, background, w, depth-1, rng)));
+                    return a;
                 }
 
                 None => {
@@ -186,10 +194,6 @@ fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::p
             }
         }
         None => {
-            let t = 0.5 * (r.direction.normalize().y() + 1.0);
-
-            let c = (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
-            
             return background;
         }
     }

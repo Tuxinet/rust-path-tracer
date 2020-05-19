@@ -20,11 +20,11 @@ impl World {
 
 impl Intersect for World {
     #[inline(always)]
-    fn intersection(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
+    fn intersection(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
 
         let mut ret = None;
 
-        let mut closest: f32 = t_max;
+        let mut closest: f64 = t_max;
         let mut got_hit: bool = false;
         for s in self.objects.iter() {
             match s.intersection(ray, t_min, closest) {

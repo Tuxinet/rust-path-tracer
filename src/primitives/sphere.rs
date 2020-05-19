@@ -1,4 +1,5 @@
-use glam::{Vec3};
+extern crate nalgebra as na;
+use na::{Vector3, distance, distance_squared};
 use crate::ray::{Ray, Hit};
 use crate::primitives::Intersect;
 use crate::material::*;
@@ -6,24 +7,24 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct Sphere {
-    center: Vec3,
-    radius: f32,
+    center: Vector3<f64>,
+    radius: f64,
     material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32, material: Arc<dyn Material>) -> Self {
+    pub fn new(center: Vector3<f64>, radius: f64, material: Arc<dyn Material>) -> Self {
         Self { center, radius, material }
     }
 }
 
 impl Intersect for Sphere {
     #[inline(always)]
-    fn intersection(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
+    fn intersection(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         let oc = ray.origin - self.center;
-        let a = ray.direction.length_squared();
-        let b = oc.dot(ray.direction);
-        let c = oc.length_squared() - self.radius * self.radius;
+        let a = ray.direction.norm_squared();
+        let b = oc.dot(&ray.direction);
+        let c = oc.norm_squared() - self.radius * self.radius;
         let discriminant = b * b - a * c;
 
         if discriminant > 0.0 {
