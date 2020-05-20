@@ -69,7 +69,7 @@ impl Material for Metal {
         let reflected = reflect(ray.direction.normalize(), hit.normal);
         
         Some(ScatterRecord {
-            scattered: Ray::new(hit.p, reflected + self.fuzz * VecUtil::random_in_unit_sphere(_rng)),
+            scattered: Ray::new(hit.p, reflected + (self.fuzz * VecUtil::random_in_unit_sphere(_rng))),
             attenuation: self.albedo,
         })
     }

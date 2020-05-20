@@ -37,9 +37,10 @@ fn main() {
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
     w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))))));
     w.add_obj(Arc::new(Sphere::new(Vector3::new(2.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(4.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Dielectric::new(1.5)))));
-    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
-    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, 3.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(100.0, 100.0, 100.0))))));
+    //w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, 3.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
     w.add_obj(Arc::new(Sphere::new(Vector3::new(-2.0, 1.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
     
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(4.0, 1.0, -1.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
@@ -83,13 +84,14 @@ fn main() {
         //w.add_obj(Arc::new(Sphere::new(p, -0.095, Arc::new(Dielectric::new(1.5)))));
     }
 
-    let aspect_ratio: f32 = 16.0 / 9.0;
-    let image_width: u32 = 10000;
+    let aspect_ratio: f32 = 32.0 / 9.0;
+    let image_width: u32 = 1000;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let bounds: (usize, usize) = (image_width as usize, image_height as usize);
     let mut img = vec![Vec3::new(0.0, 0.0, 0.0); bounds.0 * bounds.1];
-    let samples_per_pixel: u32 = 80;
+    let samples_per_pixel: u32 = 200;
+    let num_bounces = 20;
 
 
     println!("Starting path tracing with dimensions:\n\tWidth: {}\n\tHeight: {}", image_width, image_height);
@@ -98,7 +100,7 @@ fn main() {
 
     let num_rows_per_task: u32 = 5;
 
-    let o = Vector3::<f64>::new(-0.0, 0.0, 25.);
+    let o = Vector3::<f64>::new(-0.0, 50.0, 25.);
     let at = Vector3::<f64>::new(0.0, 1.0, 0.0);
     let c: Camera = Camera::new(o, at, Vector3::<f64>::new(0.0, 1.0, 0.0), 10.0, image_width as f64 / image_height as f64, 0.0, (o-at).norm());
 
@@ -133,7 +135,7 @@ fn main() {
                             let v: f64 = (j as f64 + rng.gen_range(0.0, 1.0)) / (image_height as f64 - 1.0);
                             let r: Ray = c.get_ray(u, v, &mut rng);
                 
-                            let c: Vec3 = ray_color(&r, Vec3::new(0.0, 0.0, 0.0), &w, 100, &mut rng);
+                            let c: Vec3 = ray_color(&r, Vec3::new(0.0, 0.0, 0.0), &w, num_bounces, &mut rng);
             
                             ac += c;
                         }
@@ -161,7 +163,7 @@ fn main() {
             let p = rx.recv().unwrap();
             img[(p.x + p.y * image_width) as usize] = p.c;
             if last_update.elapsed().as_secs() > 30 {
-                write_image("trace.png", &img, bounds).unwrap();
+                write_image("trace.png", &mut img, bounds).unwrap();
                 last_update = Instant::now();
             }
         }
@@ -169,7 +171,7 @@ fn main() {
 
     println!("Execution took {} ms", start.elapsed().as_millis());
 
-    write_image("trace.png", &img, bounds).unwrap();
+    write_image("trace.png", &mut img, bounds).unwrap();
 
     
 }
@@ -189,7 +191,10 @@ fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::p
                 }
 
                 None => {
+
                     return hit.material.emitted(0.0, 0.0, background);
+                
+                    
                 }
             }
         }
@@ -199,7 +204,7 @@ fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::p
     }
 }
 
-fn write_image(filename: &str, pixels: &[Vec3], bounds: (usize, usize))
+fn write_image(filename: &str, pixels: &mut [Vec3], bounds: (usize, usize))
     -> Result<(), std::io::Error> {
     //let output = File::create("filename.png")?;
 
@@ -207,11 +212,37 @@ fn write_image(filename: &str, pixels: &[Vec3], bounds: (usize, usize))
 
     let mut buffer = vec![0u8; bounds.0 * bounds.1 * 3];
     //img.put_pixel(20, 20, image::Rgb([255,0,0]));
+
+    // Finding maximum pixel value so that we can normalize the whole
+    // pixel array to not blow out any details
+    let mut max_value: f32 = 0.0;
+
     for y in (0..(bounds.1)).rev() {
         for x in 0..bounds.0 {
-            buffer[x * 3 + y * 3 * bounds.0] = (pixels[x + (bounds.1 - y - 1) * bounds.0].x() * 255.0) as u8;
-            buffer[x * 3 + y * 3 * bounds.0 + 1] = (pixels[x + (bounds.1 - y - 1) * bounds.0].y() * 255.0) as u8;
-            buffer[x * 3 + y * 3 * bounds.0 + 2] = (pixels[x + (bounds.1 - y - 1) * bounds.0].z() * 255.0) as u8;
+            // Making sure values doesn't overflow as we can have lights
+            // brighter than 1
+            if pixels[x + (bounds.1 - y - 1) * bounds.0].x() > max_value {
+                max_value = pixels[x + (bounds.1 - y - 1) * bounds.0].x();
+            }
+
+            if pixels[x + (bounds.1 - y - 1) * bounds.0].y() > max_value {
+                max_value = pixels[x + (bounds.1 - y - 1) * bounds.0].y();
+            }
+
+            if pixels[x + (bounds.1 - y - 1) * bounds.0].z() > max_value {
+                max_value = pixels[x + (bounds.1 - y - 1) * bounds.0].z();
+            }
+        }
+    }
+
+    for y in (0..(bounds.1)).rev() {
+        for x in 0..bounds.0 {
+            // Making sure values doesn't overflow as we can have lights
+            // brighter than 1
+
+            buffer[x * 3 + y * 3 * bounds.0] = (pixels[x + (bounds.1 - y - 1) * bounds.0].x() / max_value * 255.0) as u8;
+            buffer[x * 3 + y * 3 * bounds.0 + 1] = (pixels[x + (bounds.1 - y - 1) * bounds.0].y() / max_value * 255.0) as u8;
+            buffer[x * 3 + y * 3 * bounds.0 + 2] = (pixels[x + (bounds.1 - y - 1) * bounds.0].z() / max_value * 255.0) as u8;
         }
     }
     image::save_buffer(filename, &buffer, bounds.0 as u32, bounds.1 as u32, image::ColorType::Rgb8).unwrap();
