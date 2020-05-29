@@ -19,7 +19,7 @@ impl Sphere {
 }
 
 impl Intersect for Sphere {
-    #[inline(always)]
+    #[inline]
     fn intersection(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         let oc = ray.origin - self.center;
         let a = ray.direction.norm_squared();

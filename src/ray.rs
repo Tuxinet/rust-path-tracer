@@ -11,7 +11,7 @@ pub struct Ray {
 }
 
 impl Ray {
-    #[inline(always)]
+    #[inline]
     pub fn new(origin: Vector3<f64>, direction: Vector3<f64>) -> Self {
         let inv_direction = Vector3::<f64>::new(
             1.0 / direction.x,
@@ -26,7 +26,7 @@ impl Ray {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn at(&self, t: f64) -> Vector3<f64> {
         return self.origin + t * self.direction;
     }
@@ -42,7 +42,7 @@ pub struct Hit {
 }
 
 impl Hit {
-    #[inline(always)]
+    #[inline]
     pub fn set_face_normal(&mut self, ray: &Ray) {
         self.front_face = ray.direction.dot(&self.normal) < 0.0;
         if self.front_face {

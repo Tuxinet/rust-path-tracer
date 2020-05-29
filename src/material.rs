@@ -21,7 +21,9 @@ fn schlick(cosine: f64, ref_idx: f64) -> f64 {
 }
 
 pub trait Material: std::fmt::Debug + Send + Sync {
+    #[inline]
     fn scatter(&self, ray: &Ray, hit: &Hit, rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord>;
+    #[inline]
     fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 { return Vec3::new(0.0, 0.0, 0.0); }
 }
 

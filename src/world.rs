@@ -19,7 +19,7 @@ impl World {
 }
 
 impl Intersect for World {
-    #[inline(always)]
+    #[inline]
     fn intersection(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
 
         let mut ret = None;
