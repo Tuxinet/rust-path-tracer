@@ -22,7 +22,7 @@ fn schlick(cosine: f64, ref_idx: f64) -> f64 {
 
 pub trait Material: std::fmt::Debug + Send + Sync {
     #[inline]
-    fn scatter(&self, ray: &Ray, hit: &Hit, rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord>;
+    fn scatter(&self, ray: &Ray, hit: &Hit, rng: &mut rand::prelude::SmallRng) -> Option<ScatterRecord>;
     #[inline]
     fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 { return Vec3::new(0.0, 0.0, 0.0); }
 }
@@ -39,7 +39,7 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, _ray: &Ray, hit: &Hit, rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+    fn scatter(&self, _ray: &Ray, hit: &Hit, rng: &mut rand::prelude::SmallRng) -> Option<ScatterRecord> {
         let scatter_direction: Vector3<f64> = VecUtil::random_in_hemisphere(hit.normal, rng);
         
         return Some(ScatterRecord {
@@ -67,7 +67,7 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::SmallRng) -> Option<ScatterRecord> {
         
         let reflected = reflect(ray.direction.normalize(), hit.normal);
         
@@ -92,7 +92,7 @@ impl Dielectric {
 impl Material for Dielectric {
     
     #[inline(always)]
-    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::SmallRng) -> Option<ScatterRecord> {
         let mut etai_over_etat: f64 = self.ref_idx;
         if hit.front_face {
             etai_over_etat = 1.0 / self.ref_idx;
@@ -148,7 +148,7 @@ impl DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+    fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::SmallRng) -> Option<ScatterRecord> {
         return None;
     }
 

@@ -21,23 +21,28 @@ pub fn sphere(c: &mut Criterion) {
 }
 
 pub fn material(c: &mut Criterion) {
+    let metal = Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5);
+    let dielectric = Dielectric::new(1.5);
+    let lambertian = Lambertian::new(Vec3::new(1.0, 1.0, 1.0));
+    let diffuse_light = DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0));
     let s: Sphere = Sphere::new(Vector3::new(2.0, 0.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)));
     let r: Ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 0.0));
-    let mut rng = rand::thread_rng();
-    
+    let mut rng = rand::rngs::SmallRng::from_entropy();
     
     match s.intersection(&r, 0.0001, std::f64::MAX) {
         Some(hit) => {
+            
+            c.bench_function("Metal->scatter", |b| b.iter(|| 
+                metal.scatter(&r, &hit, &mut rng)));
 
-            c.bench_function("Metal scatter", |b| b.iter(|| 
-                match hit.material.scatter(&r, &hit, &mut rng) {
-                    Some(record) => {
-                        
-                    }
+            c.bench_function("Dielectric->scatter", |b| b.iter(|| 
+                dielectric.scatter(&r, &hit, &mut rng)));
 
-                    None => { 
-                    }
-            }));        
+            c.bench_function("Lambertian->scatter", |b| b.iter(|| 
+                lambertian.scatter(&r, &hit, &mut rng)));
+
+            c.bench_function("DiffuseLight->scatter", |b| b.iter(|| 
+                diffuse_light.scatter(&r, &hit, &mut rng)));
             
         }
         None => {

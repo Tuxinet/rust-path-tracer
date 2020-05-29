@@ -7,22 +7,15 @@ use std::sync::Arc;
 pub struct Ray {
     pub origin: Vector3<f64>,
     pub direction: Vector3<f64>,
-    pub inv_direction: Vector3<f64>,
 }
 
 impl Ray {
     #[inline]
     pub fn new(origin: Vector3<f64>, direction: Vector3<f64>) -> Self {
-        let inv_direction = Vector3::<f64>::new(
-            1.0 / direction.x,
-            1.0 / direction.y,
-            1.0 / direction.z,
-        );
 
         Self {
             origin,
             direction,
-            inv_direction,
         }
     }
 

@@ -31,7 +31,7 @@ struct PixelData {
 
 fn main() {
     let mut w: World = World::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rngs::SmallRng::from_entropy();
 
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
@@ -87,7 +87,7 @@ fn main() {
     }
 
     let aspect_ratio: f32 = 32.0 / 9.0;
-    let image_width: u32 = 3840;
+    let image_width: u32 = 5120;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let bounds: (usize, usize) = (image_width as usize, image_height as usize);
@@ -118,7 +118,7 @@ fn main() {
 
             
             scoped.execute(move || {
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rngs::SmallRng::from_entropy();
                 let mut start = j;
                 let mut _end = 0;
                 if (start as i32 - num_rows_per_task as i32) > 0 {
@@ -178,7 +178,7 @@ fn main() {
     
 }
 
-fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::prelude::ThreadRng) -> Vec3 {
+fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::prelude::SmallRng) -> Vec3 {
     if depth <= 0 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
