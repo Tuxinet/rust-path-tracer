@@ -68,6 +68,7 @@ impl Metal {
 
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, hit: &Hit, _rng: &mut rand::prelude::ThreadRng) -> Option<ScatterRecord> {
+        
         let reflected = reflect(ray.direction.normalize(), hit.normal);
         
         Some(ScatterRecord {

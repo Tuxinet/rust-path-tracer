@@ -31,10 +31,11 @@ impl Intersect for Sphere {
             let root = discriminant.sqrt();
             let mut temp = (-b - root) / a;
             if temp < t_max && temp > t_min {
+                let point = ray.at(temp);
                 let mut hit = Hit {
                     t: temp,
-                    p: ray.at(temp),
-                    normal: (ray.at(temp) - self.center) / self.radius,
+                    p: point,
+                    normal: (point - self.center) / self.radius,
                     material: self.material.clone(),
                     front_face: true,
                 };
