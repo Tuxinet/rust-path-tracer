@@ -6,10 +6,12 @@ mod camera;
 mod vecutil;
 mod material;
 mod aabb;
+mod lehmer;
 use crate::ray::Ray;
 use crate::primitives::*;
 use crate::world::World;
 use crate::camera::Camera;
+use crate::lehmer::Lehmer;
 use rand::*;
 use std::sync::Arc;
 use crate::vecutil::VecUtil;
@@ -31,7 +33,7 @@ struct PixelData {
 
 fn main() {
     let mut w: World = World::new();
-    let mut rng = rand::rngs::SmallRng::from_entropy();
+    let mut rng = Lehmer::new();
 
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
@@ -118,7 +120,7 @@ fn main() {
 
             
             scoped.execute(move || {
-                let mut rng = rand::rngs::SmallRng::from_entropy();
+                let mut rng = Lehmer::new();
                 let mut start = j;
                 let mut _end = 0;
                 if (start as i32 - num_rows_per_task as i32) > 0 {
@@ -178,7 +180,7 @@ fn main() {
     
 }
 
-fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut rand::prelude::SmallRng) -> Vec3 {
+fn ray_color(r: &Ray, background: Vec3, w: &World, depth: u32, rng: &mut Lehmer) -> Vec3 {
     if depth <= 0 {
         return Vec3::new(0.0, 0.0, 0.0);
     }

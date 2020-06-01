@@ -3,6 +3,7 @@ use pathtrace::primitives::*;
 use pathtrace::material::*;
 use pathtrace::ray::Ray;
 use pathtrace::ray::Hit;
+use pathtrace::lehmer::Lehmer;
 use glam::Vec3;
 use std::sync::Arc;
 use rand::*;
@@ -27,7 +28,7 @@ pub fn material(c: &mut Criterion) {
     let diffuse_light = DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0));
     let s: Sphere = Sphere::new(Vector3::new(2.0, 0.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)));
     let r: Ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 0.0));
-    let mut rng = rand::rngs::SmallRng::from_entropy();
+    let mut rng = Lehmer::new();
     
     match s.intersection(&r, 0.0001, std::f64::MAX) {
         Some(hit) => {
@@ -50,5 +51,13 @@ pub fn material(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, sphere, material);
+pub fn rng(c: &mut Criterion) {
+    let mut r = Lehmer::new();
+    c.bench_function("lehmerf64", |b| b.iter(|| r.random_float(0.0, 1.0)));
+
+    let mut rng = rand::rngs::SmallRng::from_entropy();
+    c.bench_function("smallrng", |b| b.iter(|| rng.gen_range(0.0, 1.0)));
+}
+
+criterion_group!(benches, rng, sphere, material);
 criterion_main!(benches);

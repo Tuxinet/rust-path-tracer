@@ -3,6 +3,7 @@ use na::{Vector3, Rotation3};
 use crate::ray::Ray;
 use crate::vecutil::VecUtil;
 use rand::prelude::SmallRng;
+use crate::lehmer::Lehmer;
 
 #[derive(Clone, Debug)]
 pub struct Camera {
@@ -44,7 +45,7 @@ impl Camera {
     }
 
     #[inline]
-    pub fn get_ray(&self, s: f64, t: f64, rng: &mut SmallRng) -> Ray {
+    pub fn get_ray(&self, s: f64, t: f64, rng: &mut Lehmer) -> Ray {
         let rd = self.lens_radius * VecUtil::random_in_unit_disk(rng);
         let offset = self.u * rd.x + self.v * rd.y;
         
