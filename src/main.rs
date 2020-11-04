@@ -42,6 +42,7 @@ fn main() {
     //w.add_obj(Arc::new(Sphere::new(Vector3::new(4.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
     //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Dielectric::new(1.5)))));
     w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 14.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(0.5, 0.0, 1.0))))));
     
     //w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 5.0, -0.0), 3.0, Arc::new(Dielectric::new(1.5)))));
     //w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, 3.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
@@ -88,13 +89,13 @@ fn main() {
         //w.add_obj(Arc::new(Sphere::new(p, -0.095, Arc::new(Dielectric::new(1.5)))));
     }
 
-    let aspect_ratio: f32 = 32.0 / 9.0;
-    let image_width: u32 = 5120;
+    let aspect_ratio: f32 = 16.0 / 9.0;
+    let image_width: u32 = 4096;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let bounds: (usize, usize) = (image_width as usize, image_height as usize);
     let mut img = vec![Vec3::new(0.0, 0.0, 0.0); bounds.0 * bounds.1];
-    let samples_per_pixel: u32 = 20;
+    let samples_per_pixel: u32 = 10;
     let num_bounces = 20;
 
 
@@ -104,7 +105,7 @@ fn main() {
 
     let num_rows_per_task: u32 = 5;
 
-    let o = Vector3::<f64>::new(-0.0, 50.0, 0.1);
+    let o = Vector3::<f64>::new(-0.0, 0.0, 100.1);
     let at = Vector3::<f64>::new(0.0, 1.0, 0.0);
     let c: Camera = Camera::new(o, at, Vector3::<f64>::new(0.0, 1.0, 0.0), 5.0, image_width as f64 / image_height as f64, 0.0, (o-at).norm());
 
