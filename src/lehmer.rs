@@ -4,9 +4,9 @@ pub struct Lehmer {
 }
 
 impl Lehmer {
-    pub fn new() -> Self {
+    pub fn new(seed: u128) -> Self {
         Self {
-            state: 1283412384995,
+            state: seed,
         }
     }
 

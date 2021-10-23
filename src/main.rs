@@ -33,26 +33,24 @@ struct PixelData {
 
 fn main() {
     let mut w: World = World::new();
-    let mut rng = Lehmer::new();
+    let mut rrng = rand::rngs::SmallRng::from_entropy();
+    let mut rng = Lehmer::new(rrng.gen_range(0 as u128, 123888488 as u128));
 
-    //w.add_obj(Arc::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
-    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
+    // Ground
     w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))))));
+
+
     w.add_obj(Arc::new(Sphere::new(Vector3::new(2.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
-    //w.add_obj(Arc::new(Sphere::new(Vector3::new(4.0, 1.0, -0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
-    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, -500.0, -3.0), 500.0, Arc::new(Dielectric::new(1.5)))));
-    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
-    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 14.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(0.5, 0.0, 1.0))))));
-    
-    //w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 5.0, -0.0), 3.0, Arc::new(Dielectric::new(1.5)))));
-    //w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, 3.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
     w.add_obj(Arc::new(Sphere::new(Vector3::new(-2.0, 1.0, 0.0), 1.0, Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.5)))));
-    
-    //w.add_obj(Arc::new(Sphere::new(Vec3::new(4.0, 1.0, -1.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
-    //w.add_obj(Arc::new(Sphere::new(Vec3::new(0.0, 20.0, 0.0), 5.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 1.0, -0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(0.5, 1.0, 1.0))))));
+    //w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 50.0, -0.0), 25.0, Arc::new(DiffuseLight::new(Vec3::new(1.0, 1.0, 1.0))))));
+    w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 14.0, 0.0), 1.0, Arc::new(DiffuseLight::new(Vec3::new(0.5, 0.0, 1.0))))));
+
+    //     w.add_obj(Arc::new(Sphere::new(Vector3::new(0.0, 5.0, -0.0), 3.0, Arc::new(Dielectric::new(1.5)))));
 
     let min = 0;
-    let max = 0;
+    let max = 10;
 
     for a in min..max { 
         for b in min..max {
@@ -90,24 +88,25 @@ fn main() {
     }
 
     let aspect_ratio: f32 = 16.0 / 9.0;
-    let image_width: u32 = 4096;
+    let image_width: u32 = 1920;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let bounds: (usize, usize) = (image_width as usize, image_height as usize);
     let mut img = vec![Vec3::new(0.0, 0.0, 0.0); bounds.0 * bounds.1];
     let samples_per_pixel: u32 = 10;
-    let num_bounces = 20;
+    let num_bounces = 40;
 
 
     println!("Starting path tracing with dimensions:\n\tWidth: {}\n\tHeight: {}", image_width, image_height);
 
-    let mut pool = Pool::new( 16 );
+    let threads: u32 = 16;
+    let mut pool = Pool::new( threads );
 
-    let num_rows_per_task: u32 = 5;
+    let num_rows_per_task: u32 = image_height / threads / 5;
 
-    let o = Vector3::<f64>::new(-0.0, 0.0, 100.1);
+    let o = Vector3::<f64>::new(-0.0, 1.0, 25.1);
     let at = Vector3::<f64>::new(0.0, 1.0, 0.0);
-    let c: Camera = Camera::new(o, at, Vector3::<f64>::new(0.0, 1.0, 0.0), 5.0, image_width as f64 / image_height as f64, 0.0, (o-at).norm());
+    let c: Camera = Camera::new(o, at, Vector3::<f64>::new(0.0, 1.0, 0.0), 20.0, image_width as f64 / image_height as f64, 0.0, (o-at).norm());
 
     let start = Instant::now();
     pool.scoped(|scoped| {
@@ -119,9 +118,9 @@ fn main() {
             let w = w.clone();
             let tx = tx.clone();
 
-            
+            let seed=rrng.gen_range(0 as u128, 123888488 as u128);
             scoped.execute(move || {
-                let mut rng = Lehmer::new();
+                let mut rng = Lehmer::new(seed);
                 let mut start = j;
                 let mut _end = 0;
                 if (start as i32 - num_rows_per_task as i32) > 0 {
@@ -175,7 +174,6 @@ fn main() {
     });
 
     println!("Execution took {} ms", start.elapsed().as_millis());
-
     write_image("trace.png", &mut img, bounds).unwrap();
 
     
